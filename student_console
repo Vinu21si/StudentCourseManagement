@@ -1,0 +1,193 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+
+class Student {
+    int id;
+    String name;
+    public Student(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+}
+
+class Course {
+    int id;
+    String title;
+    public Course(int id, String title) {
+        this.id = id;
+        this.title = title;
+    }
+}
+
+class Enrollment {
+    Student student;
+    Course course;
+    public Enrollment(Student student, Course course) {
+        this.student = student;
+        this.course = course;
+    }
+}
+
+public class StudentCourseManagementUI extends JFrame {
+
+    private java.util.List<Student> students = new ArrayList<>();
+    private java.util.List<Course> courses = new ArrayList<>();
+    private java.util.List<Enrollment> enrollments = new ArrayList<>();
+
+    private DefaultTableModel studentTableModel;
+    private DefaultTableModel courseTableModel;
+    private DefaultTableModel enrollmentTableModel;
+
+    public StudentCourseManagementUI() {
+        setTitle("Student Course Management System");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Create Tabs
+        JTabbedPane tabbedPane = new JTabbedPane();
+
+        // Students Panel
+        tabbedPane.add("Students", createStudentsPanel());
+
+        // Courses Panel
+        tabbedPane.add("Courses", createCoursesPanel());
+
+        // Enrollment Panel
+        tabbedPane.add("Enrollments", createEnrollmentPanel());
+
+        add(tabbedPane);
+        setLocationRelativeTo(null); // center
+    }
+
+    private JPanel createStudentsPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        studentTableModel = new DefaultTableModel(new String[]{"ID", "Name"}, 0);
+        JTable table = new JTable(studentTableModel);
+
+        JPanel inputPanel = new JPanel();
+        JTextField idField = new JTextField(5);
+        JTextField nameField = new JTextField(15);
+        JButton addButton = new JButton("Add Student");
+
+        addButton.addActionListener(e -> {
+            try {
+                int id = Integer.parseInt(idField.getText());
+                String name = nameField.getText();
+                students.add(new Student(id, name));
+                studentTableModel.addRow(new Object[]{id, name});
+                idField.setText("");
+                nameField.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid ID!");
+            }
+        });
+
+        inputPanel.add(new JLabel("ID:"));
+        inputPanel.add(idField);
+        inputPanel.add(new JLabel("Name:"));
+        inputPanel.add(nameField);
+        inputPanel.add(addButton);
+
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        panel.add(inputPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel createCoursesPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        courseTableModel = new DefaultTableModel(new String[]{"ID", "Title"}, 0);
+        JTable table = new JTable(courseTableModel);
+
+        JPanel inputPanel = new JPanel();
+        JTextField idField = new JTextField(5);
+        JTextField titleField = new JTextField(15);
+        JButton addButton = new JButton("Add Course");
+
+        addButton.addActionListener(e -> {
+            try {
+                int id = Integer.parseInt(idField.getText());
+                String title = titleField.getText();
+                courses.add(new Course(id, title));
+                courseTableModel.addRow(new Object[]{id, title});
+                idField.setText("");
+                titleField.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid ID!");
+            }
+        });
+
+        inputPanel.add(new JLabel("ID:"));
+        inputPanel.add(idField);
+        inputPanel.add(new JLabel("Title:"));
+        inputPanel.add(titleField);
+        inputPanel.add(addButton);
+
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        panel.add(inputPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel createEnrollmentPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        enrollmentTableModel = new DefaultTableModel(new String[]{"Student", "Course"}, 0);
+        JTable table = new JTable(enrollmentTableModel);
+
+        JPanel inputPanel = new JPanel();
+        JComboBox<String> studentBox = new JComboBox<>();
+        JComboBox<String> courseBox = new JComboBox<>();
+        JButton enrollButton = new JButton("Enroll");
+
+        // Update dropdowns whenever panel is opened
+        panel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                studentBox.removeAllItems();
+                for (Student s : students) {
+                    studentBox.addItem(s.id + " - " + s.name);
+                }
+                courseBox.removeAllItems();
+                for (Course c : courses) {
+                    courseBox.addItem(c.id + " - " + c.title);
+                }
+            }
+        });
+
+        enrollButton.addActionListener(e -> {
+            if (studentBox.getSelectedItem() != null && courseBox.getSelectedItem() != null) {
+                int studentIndex = studentBox.getSelectedIndex();
+                int courseIndex = courseBox.getSelectedIndex();
+                if (studentIndex >= 0 && courseIndex >= 0) {
+                    Student s = students.get(studentIndex);
+                    Course c = courses.get(courseIndex);
+                    enrollments.add(new Enrollment(s, c));
+                    enrollmentTableModel.addRow(new Object[]{s.name, c.title});
+                }
+            }
+        });
+
+        inputPanel.add(new JLabel("Student:"));
+        inputPanel.add(studentBox);
+        inputPanel.add(new JLabel("Course:"));
+        inputPanel.add(courseBox);
+        inputPanel.add(enrollButton);
+
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+        panel.add(inputPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new StudentCourseManagementUI().setVisible(true);
+        });
+    }
+}
